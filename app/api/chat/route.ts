@@ -1,14 +1,19 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { BetaRequestMCPServerURLDefinition, BetaTextBlock } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+export async function POST(request: Request) {
+  try {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return Response.json({ error: "ANTHROPIC_API_KEY is not configured" }, { status: 500 });
+    }
 
-const MIXPANEL_MCP_URL = process.env.MIXPANEL_MCP_URL || "https://mcp.mixpanel.com/sse";
-const MIXPANEL_SERVICE_ACCOUNT = process.env.MIXPANEL_SERVICE_ACCOUNT_USERNAME || "";
-const MIXPANEL_SECRET = process.env.MIXPANEL_SERVICE_ACCOUNT_SECRET || "";
-const MIXPANEL_PROJECT_ID = process.env.MIXPANEL_PROJECT_ID || "";
+    const MIXPANEL_MCP_URL = process.env.MIXPANEL_MCP_URL || "https://mcp.mixpanel.com/sse";
+    const MIXPANEL_SERVICE_ACCOUNT = process.env.MIXPANEL_SERVICE_ACCOUNT_USERNAME || "";
+    const MIXPANEL_SECRET = process.env.MIXPANEL_SERVICE_ACCOUNT_SECRET || "";
+    const MIXPANEL_PROJECT_ID = process.env.MIXPANEL_PROJECT_ID || "";
 
-const SYSTEM_PROMPT = `You are a data analyst assistant for the Jobify team. You answer questions about Mixpanel analytics data.
+    const SYSTEM_PROMPT = `You are a data analyst assistant for the Jobify team. You answer questions about Mixpanel analytics data.
 
 ## Default behavior
 - Always filter for **Israel traffic only** unless the user explicitly requests a different country.
@@ -41,8 +46,8 @@ const SYSTEM_PROMPT = `You are a data analyst assistant for the Jobify team. You
 - Default country filter: Israel (\`$country_code = "IL"\`)
 `;
 
-export async function POST(request: Request) {
-  try {
+    const client = new Anthropic({ apiKey });
+
     const { messages } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
